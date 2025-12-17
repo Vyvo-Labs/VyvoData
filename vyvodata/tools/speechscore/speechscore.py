@@ -3,24 +3,24 @@ import librosa
 import soundfile as sf
 import resampy
 import numpy as np
-from scores.srmr.srmr import SRMR
-from scores.dnsmos.dnsmos import DNSMOS
-from scores.pesq import PESQ
-from scores.nb_pesq import NB_PESQ
-from scores.sisdr import SISDR
-from scores.stoi import STOI
-from scores.fwsegsnr import FWSEGSNR
-from scores.lsd import LSD
-from scores.bsseval import BSSEval
-from scores.snr import SNR
-from scores.ssnr import SSNR
-from scores.llr import LLR
-from scores.csig import CSIG
-from scores.cbak import CBAK
-from scores.covl import COVL
-from scores.mcd import MCD
-from scores.nisqa.nisqa import NISQA
-from scores.distill_mos.distill_mos import DISTILL_MOS 
+from vyvodata.tools.speechscore.scores.srmr.srmr import SRMR
+from vyvodata.tools.speechscore.scores.dnsmos.dnsmos import DNSMOS
+from vyvodata.tools.speechscore.scores.pesq import PESQ
+from vyvodata.tools.speechscore.scores.nb_pesq import NB_PESQ
+from vyvodata.tools.speechscore.scores.sisdr import SISDR
+from vyvodata.tools.speechscore.scores.stoi import STOI
+from vyvodata.tools.speechscore.scores.fwsegsnr import FWSEGSNR
+from vyvodata.tools.speechscore.scores.lsd import LSD
+from vyvodata.tools.speechscore.scores.bsseval import BSSEval
+from vyvodata.tools.speechscore.scores.snr import SNR
+from vyvodata.tools.speechscore.scores.ssnr import SSNR
+from vyvodata.tools.speechscore.scores.llr import LLR
+from vyvodata.tools.speechscore.scores.csig import CSIG
+from vyvodata.tools.speechscore.scores.cbak import CBAK
+from vyvodata.tools.speechscore.scores.covl import COVL
+from vyvodata.tools.speechscore.scores.mcd import MCD
+from vyvodata.tools.speechscore.scores.nisqa.nisqa import NISQA
+from vyvodata.tools.speechscore.scores.distill_mos.distill_mos import DISTILL_MOS 
 
 def compute_mean_results(*results):
     mean_result = {}

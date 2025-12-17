@@ -1,3 +1,5 @@
+from vyvodata.tools.speechscore.speechscore import SpeechScore
+
 class Metric:
     def __init__(self, name, window, hop=None, verbose=False):
         # the metric operates on some fixed rate only or only on mono ?
@@ -94,10 +96,6 @@ class Metric:
         else:
             result = self.test_window(audios, rate)
         return result
-
-
-import absolute
-import relative
 
 
 class MetricsList:

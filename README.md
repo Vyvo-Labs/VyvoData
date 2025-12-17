@@ -15,6 +15,8 @@ uv pip install -e .
 
 ## 🎙️ Usage
 
+### Audio Quality Assessment
+
 ```python
 from vyvodata.tools.audiobox_aesthetics.infer import audiobox_aesthetics_predict
 
@@ -22,6 +24,19 @@ results = audiobox_aesthetics_predict(
     input_file="path/to/audio/file.wav",
     ckpt="facebook/audiobox-aesthetics",
     batch_size=1,
+)
+```
+
+### Speech Quality Assessment
+
+```python
+from vyvodata.pipelines.speechscore_pipeline import SpeechScorePredictor
+
+predictor = SpeechScorePredictor()
+
+scores = predictor(
+    test_path="path/to/audio/file.wav",
+    reference_path="path/to/reference/file.wav",
 )
 ```
 

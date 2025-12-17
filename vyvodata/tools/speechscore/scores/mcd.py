@@ -1,4 +1,4 @@
-from basis import ScoreBasis
+from vyvodata.tools.speechscore.basis import ScoreBasis
 import librosa
 import math
 import numpy as np
@@ -6,7 +6,7 @@ import pyworld
 import pysptk
 from fastdtw import fastdtw
 from scipy.spatial.distance import euclidean
-#from scores.helper import calculate_mcd
+#from vyvodata.tools.speechscore.scores.helper import calculate_mcd
 #from pymcd.mcd import Calculate_MCD
 #refer to : https://github.com/chenqi008/pymcd/blob/main/pymcd/mcd.py
 class MCD(ScoreBasis):

@@ -1,7 +1,7 @@
-from basis import ScoreBasis
+from vyvodata.tools.speechscore.basis import ScoreBasis
 import numpy as np
 from scipy.linalg import toeplitz
-from scores.helper import lpcoeff
+from vyvodata.tools.speechscore.scores.helper import lpcoeff
 
 class LLR(ScoreBasis):
     def __init__(self):

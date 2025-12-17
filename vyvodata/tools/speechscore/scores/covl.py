@@ -1,7 +1,7 @@
-from basis import ScoreBasis
+from vyvodata.tools.speechscore.basis import ScoreBasis
 import numpy as np
 from pesq import pesq
-from scores.helper import wss, llr, SSNR, norm_mos
+from vyvodata.tools.speechscore.scores.helper import wss, llr, SSNR, norm_mos
 
 class COVL(ScoreBasis):
     def __init__(self):
