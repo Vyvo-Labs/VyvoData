@@ -1,5 +1,5 @@
-from basis import ScoreBasis
-from scores.distill_mos.sqa import ConvTransformerSQAModel
+from vyvodata.tools.speechscore.basis import ScoreBasis
+from vyvodata.tools.speechscore.scores.distill_mos.sqa import ConvTransformerSQAModel
 import numpy as np
 import torch
 

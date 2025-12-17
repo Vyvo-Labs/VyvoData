@@ -9,7 +9,7 @@ import soundfile as sf
 SAMPLING_RATE = 16000
 INPUT_LENGTH = 9.01
 
-from basis import ScoreBasis
+from vyvodata.tools.speechscore.basis import ScoreBasis
 
 
 class DNSMOS(ScoreBasis):
@@ -17,8 +17,9 @@ class DNSMOS(ScoreBasis):
         super(DNSMOS, self).__init__(name='DNSMOS')
         self.intrusive = True
         self.score_rate = 16000
-        self.p808_model_path = os.path.join('scores/dnsmos/DNSMOS', 'model_v8.onnx')    
-        self.primary_model_path = os.path.join('scores/dnsmos/DNSMOS', 'sig_bak_ovr.onnx')
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.p808_model_path = os.path.join(current_dir, 'DNSMOS', 'model_v8.onnx')
+        self.primary_model_path = os.path.join(current_dir, 'DNSMOS', 'sig_bak_ovr.onnx')
         self.compute_score = ComputeScore(self.primary_model_path, self.p808_model_path)
 
     def windowed_scoring(self, audios, rate):

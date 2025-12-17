@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 
 #sys.path.append(str(Path(__file__).parent.parent / "lib/NISQA"))
-import scores.nisqa.NISQA_lib as NL
+import vyvodata.tools.speechscore.scores.nisqa.NISQA_lib as NL
 
 
 def load_nisqa_model(model_path, device="cpu"):

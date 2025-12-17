@@ -1,5 +1,5 @@
 import numpy as np
-from basis import ScoreBasis
+from vyvodata.tools.speechscore.basis import ScoreBasis
 
 
 class BSSEval(ScoreBasis):

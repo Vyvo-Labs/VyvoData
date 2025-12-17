@@ -8,3 +8,17 @@ rich
 safetensors
 soundfile
 datasets
+librosa
+resampy
+scipy
+pesq
+pystoi
+onnxruntime
+fastdtw
+gammatone
+pysptk
+pyworld
+pandas
+matplotlib
+xls-r-sqa
+museval

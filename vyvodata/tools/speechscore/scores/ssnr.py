@@ -1,4 +1,4 @@
-from basis import ScoreBasis
+from vyvodata.tools.speechscore.basis import ScoreBasis
 import numpy as np
 
 class SSNR(ScoreBasis):
