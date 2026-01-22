@@ -15,6 +15,8 @@ uv pip install -e .
 
 ## 🎙️ Usage
 
+### Audiobox Aesthetics
+
 ```python
 from vyvodata.tools.audiobox_aesthetics.infer import audiobox_aesthetics_predict
 
@@ -23,6 +25,21 @@ results = audiobox_aesthetics_predict(
     ckpt="facebook/audiobox-aesthetics",
     batch_size=1,
 )
+```
+
+### Speech Score Prediction
+
+```python
+from vyvodata.pipelines.speechscore_pipeline import SpeechScorePredictor
+
+predictor = SpeechScorePredictor(
+    metrics=["DNSMOS"]  # STOI, PESQ, NISQA
+)
+
+scores = predictor(
+    test_path="test.wav",
+)
+print("Scores:", scores)
 ```
 
 ## 😍 Contributing
