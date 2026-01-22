@@ -10,9 +10,8 @@ try:
     from scipy.signal.windows import hamming
 except ImportError:
     from scipy.signal import hamming
-from .hilbert import hilbert
-from .modulation_filters import compute_modulation_cfs, modulation_filterbank,\
-                                modfilt
+from vyvodata.tools.speechscore.scores.srmr.hilbert import hilbert
+from vyvodata.tools.speechscore.scores.srmr.modulation_filters import compute_modulation_cfs, modulation_filterbank, modfilt
 from gammatone.fftweight import fft_gtgram
 from gammatone.filters import centre_freqs, make_erb_filters, erb_filterbank
 #from srmrpy.segmentaxis import segment_axis
