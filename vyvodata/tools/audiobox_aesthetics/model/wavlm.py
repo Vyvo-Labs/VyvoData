@@ -12,18 +12,15 @@
 
 import logging
 import math
-
+import warnings
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-
-import warnings
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as f
 from torch import Tensor
 from torch.nn import LayerNorm, Parameter
-
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +41,7 @@ class Fp32LayerNorm(nn.LayerNorm):
         super().__init__(*args, **kwargs)
 
     def forward(self, input):
-        output = F.layer_norm(
+        output = f.layer_norm(
             input.float(),
             self.normalized_shape,
             self.weight.float() if self.weight is not None else None,
@@ -59,7 +56,7 @@ class Fp32GroupNorm(nn.GroupNorm):
         super().__init__(*args, **kwargs)
 
     def forward(self, input):
-        output = F.group_norm(
+        output = f.group_norm(
             input.float(),
             self.num_groups,
             self.weight.float() if self.weight is not None else None,
@@ -107,7 +104,7 @@ class Swish(nn.Module):
         return x * self.act(x)
 
 
-class GLU_Linear(nn.Module):
+class GluLinear(nn.Module):
     def __init__(self, input_dim, output_dim, glu_type="sigmoid", bias_in_glu=True):
         super().__init__()
 
@@ -129,7 +126,7 @@ class GLU_Linear(nn.Module):
             self.linear = nn.Linear(input_dim, output_dim * 2, False)
 
     def forward(self, x):
-        # to be consistent with GLU_Linear, we assume the input always has the #channel (#dim) in the last dimension of the tensor, so need to switch the dimension first for 1D-Conv case
+        # to be consistent with GluLinear, we assume the input always has the #channel (#dim) in the last dimension of the tensor, so need to switch the dimension first for 1D-Conv case
         x = self.linear(x)
 
         if self.glu_type == "bilinear":
@@ -161,7 +158,7 @@ def get_activation_fn(activation: str):
     """Returns the activation function corresponding to `activation`"""
 
     if activation == "relu":
-        return F.relu
+        return f.relu
     elif activation == "gelu":
         return gelu
     elif activation == "gelu_fast":
@@ -547,11 +544,11 @@ class MultiheadAttention(nn.Module):
                     new_x_shape = query_layer.size()[:-1] + (self.num_heads, -1)
                     query_layer = query_layer.view(*new_x_shape)
                     query_layer = query_layer.permute(0, 2, 1, 3)
-                    _B, _H, _L, __ = query_layer.size()
+                    batch_size, num_heads, seq_len, head_dim = query_layer.size()
 
                     gate_a, gate_b = torch.sigmoid(
                         self.grep_linear(query_layer)
-                        .view(_B, _H, _L, 2, 4)
+                        .view(batch_size, num_heads, seq_len, 2, 4)
                         .sum(-1, keepdim=False)
                     ).chunk(2, dim=-1)
                     gate_a_1 = gate_a * (gate_b * self.grep_a - 1.0) + 2.0
@@ -564,7 +561,7 @@ class MultiheadAttention(nn.Module):
             if k_proj_bias is None:
                 k_proj_bias = torch.zeros_like(self.q_proj.bias)
 
-            x, attn = F.multi_head_attention_forward(
+            x, attn = f.multi_head_attention_forward(
                 query,
                 key,
                 value,
@@ -757,10 +754,10 @@ class MultiheadAttention(nn.Module):
         if position_bias is not None:
             if self.gru_rel_pos == 1:
                 query_layer = q.view(bsz, self.num_heads, tgt_len, self.q_head_dim)
-                _B, _H, _L, __ = query_layer.size()
+                batch_size, num_heads, seq_len, head_dim = query_layer.size()
                 gate_a, gate_b = torch.sigmoid(
                     self.grep_linear(query_layer)
-                    .view(_B, _H, _L, 2, 4)
+                    .view(batch_size, num_heads, seq_len, 2, 4)
                     .sum(-1, keepdim=False)
                 ).chunk(2, dim=-1)
                 gate_a_1 = gate_a * (gate_b * self.grep_a - 1.0) + 2.0
@@ -772,7 +769,7 @@ class MultiheadAttention(nn.Module):
 
             attn_weights = attn_weights + position_bias
 
-        attn_weights_float = F.softmax(attn_weights, dim=-1)
+        attn_weights_float = f.softmax(attn_weights, dim=-1)
         attn_weights = attn_weights_float.type_as(attn_weights)
         attn_probs = self.dropout_module(attn_weights)
 
@@ -1120,10 +1117,10 @@ class WavLM(nn.Module):
         self.layer_norm = LayerNorm(self.embed)
 
     def apply_mask(self, x, padding_mask):
-        B, T, C = x.shape
+        b, t, c = x.shape
         if self.mask_prob > 0:
             mask_indices = compute_mask_indices(
-                (B, T),
+                (b, t),
                 padding_mask,
                 self.mask_prob,
                 self.mask_length,
@@ -1140,7 +1137,7 @@ class WavLM(nn.Module):
 
         if self.mask_channel_prob > 0:
             mask_channel_indices = compute_mask_indices(
-                (B, C),
+                (b, c),
                 None,
                 self.mask_channel_prob,
                 self.mask_channel_length,
@@ -1153,7 +1150,7 @@ class WavLM(nn.Module):
                 torch.from_numpy(mask_channel_indices)
                 .to(x.device)
                 .unsqueeze(1)
-                .expand(-1, T, -1)
+                .expand(-1, t, -1)
             )
             x[mask_channel_indices] = 0
 
@@ -1432,7 +1429,7 @@ class TransformerEncoder(nn.Module):
         if not self.layer_norm_first:
             x = self.layer_norm(x)
 
-        x = F.dropout(x, p=self.dropout, training=self.training)
+        x = f.dropout(x, p=self.dropout, training=self.training)
 
         # B x T x C -> T x B x C
         x = x.transpose(0, 1)
@@ -1521,7 +1518,7 @@ class TransformerSentenceEncoderLayer(nn.Module):
         self.self_attn_layer_norm = LayerNorm(self.embedding_dim)
 
         if self.activation_name == "glu":
-            self.fc1 = GLU_Linear(self.embedding_dim, ffn_embedding_dim, "swish")
+            self.fc1 = GluLinear(self.embedding_dim, ffn_embedding_dim, "swish")
         else:
             self.fc1 = nn.Linear(self.embedding_dim, ffn_embedding_dim)
         self.fc2 = nn.Linear(ffn_embedding_dim, self.embedding_dim)

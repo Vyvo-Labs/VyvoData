@@ -4,15 +4,16 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from typing import Dict, Optional
-from torch import nn
+
 import torch
+from huggingface_hub import PyTorchModelHubMixin
+from torch import nn
 
 from vyvodata.tools.audiobox_aesthetics.model.utils import create_mlp_block
 from vyvodata.tools.audiobox_aesthetics.model.wavlm import WavLM, WavLMConfig
-from huggingface_hub import PyTorchModelHubMixin
 
 logger = logging.getLogger(__name__)
 

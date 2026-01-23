@@ -4,18 +4,19 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-from dataclasses import dataclass
 import json
 import logging
 import re
+from dataclasses import dataclass
 from typing import Any, Dict, List
-from tqdm import tqdm
-import torch
-import torchaudio
-import torch.nn.functional as F
 
-from vyvodata.tools.audiobox_aesthetics.utils import load_model
+import torch
+import torch.nn.functional as f
+import torchaudio
+from tqdm import tqdm
+
 from vyvodata.tools.audiobox_aesthetics.model.aes import AesMultiOutput, Normalize
+from vyvodata.tools.audiobox_aesthetics.utils import load_model
 
 # Create module-level logger instead of configuring root logger
 logger = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ def make_inference_batch(
             wav_ii = wav[..., ii : ii + winlen]
             wav_ii_len = wav_ii.shape[-1]
             if wav_ii_len < winlen and pad_zero:
-                wav_ii = F.pad(wav_ii, (0, winlen - wav_ii_len))
+                wav_ii = f.pad(wav_ii, (0, winlen - wav_ii_len))
             mask_ii = torch.zeros_like(wav_ii, dtype=torch.bool)
             mask_ii[:, 0:wav_ii_len] = True
             wavs.append(wav_ii)
@@ -97,7 +98,9 @@ class AesPredictor:
 
         if self.checkpoint_pth is not None:
             # Check if it's a HuggingFace model ID or local file path
-            if "/" in self.checkpoint_pth and not self.checkpoint_pth.endswith(('.pt', '.pth', '.bin')):
+            if "/" in self.checkpoint_pth and not self.checkpoint_pth.endswith(
+                (".pt", ".pth", ".bin")
+            ):
                 logger.info(f"Using HuggingFace model: {self.checkpoint_pth}")
                 # load from HF repo (using safetensors)
                 model = AesMultiOutput.from_pretrained(self.checkpoint_pth)
@@ -110,7 +113,8 @@ class AesPredictor:
                 with open(checkpoint_file, "rb") as fin:
                     ckpt = torch.load(fin, map_location=self.device)
                     state_dict = {
-                        re.sub("^model.", "", k): v for (k, v) in ckpt["state_dict"].items()
+                        re.sub("^model.", "", k): v
+                        for (k, v) in ckpt["state_dict"].items()
                     }
 
                 model = AesMultiOutput(
@@ -223,7 +227,9 @@ def initialize_predictor(checkpoint_pth=None):
     return model_predictor
 
 
-def audiobox_aesthetics_predict(input_file, ckpt, batch_size=10) -> List[Dict[str, Any]]:
+def audiobox_aesthetics_predict(
+    input_file, ckpt, batch_size=10
+) -> List[Dict[str, Any]]:
     predictor = initialize_predictor(ckpt)
 
     # load file

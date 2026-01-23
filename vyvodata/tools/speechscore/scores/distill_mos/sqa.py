@@ -1,11 +1,12 @@
+import argparse
 import os
+
 import numpy as np
 import torch
-import torch.nn.functional as F
-from torch import nn
+import torch.nn.functional as torch_nn_functional
 import torchaudio
-import argparse
-from xls_r_sqa.config import Config, FEAT_SEQ_LEN
+from torch import nn
+from xls_r_sqa.config import FEAT_SEQ_LEN, Config
 from xls_r_sqa.sqa_model import SingleLayerModel
 
 N_LAYERS_CNN = 6
@@ -16,12 +17,14 @@ N_LAYERS_TRANSFORMER = 7
 SEQ_LEN = 122880
 MAX_HOP_LEN = 16000
 
-DEFAULT_WEIGHTS_CHKPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "weights", "distill_mos_v7.pt")
+DEFAULT_WEIGHTS_CHKPT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "weights", "distill_mos_v7.pt"
+)
 
 
 def _complex_compressed(x, hop_length, win_length):
     n_fft = win_length
-    x = F.pad(
+    x = torch_nn_functional.pad(
         x,
         (int((win_length - hop_length) / 2), int((win_length - hop_length) / 2)),
         mode="reflect",
@@ -47,12 +50,13 @@ class _ComplexSpecCNN(nn.Module):
         self.hop_length = 160  # 10 ms
         self.win_length = 320  # 20 ms
         self.channels = final_channels
-        INITIAL_CHANNELS = 64
+        initial_channels = 64
         cnn_layers = []
         fdim = 161
+        prev_channels = initial_channels
         for i in range(num_layers):
             num_in_channels = 2 if i == 0 else prev_channels
-            curr_channels = min(INITIAL_CHANNELS * 2 ** max(i - 1, 0), final_channels)
+            curr_channels = min(initial_channels * 2 ** max(i - 1, 0), final_channels)
             t_stride = 2 if i == num_layers - 1 else 1
             f_stride = 2 if i >= 1 else 1
             cnn_layers.append(
@@ -69,9 +73,9 @@ class _ComplexSpecCNN(nn.Module):
             prev_channels = curr_channels
         self.cnn = nn.Sequential(*cnn_layers)
         self.fdim_cnn_out = fdim
-        assert (
-            curr_channels == final_channels
-        ), f"final_channels={final_channels} but last_channels={curr_channels}, choose a different configuration"
+        assert curr_channels == final_channels, (
+            f"final_channels={final_channels} but last_channels={curr_channels}, choose a different configuration"
+        )
 
     def forward(self, xin):
         compressed = _complex_compressed(xin, self.hop_length, self.win_length).permute(
@@ -111,7 +115,9 @@ class ConvTransformerSQAModel(nn.Module):
         self.segmenting_in_forward = segmenting_in_forward
 
         if load_weights:
-            chkpt = torch.load(DEFAULT_WEIGHTS_CHKPT, map_location="cpu", weights_only=True)
+            chkpt = torch.load(
+                DEFAULT_WEIGHTS_CHKPT, map_location="cpu", weights_only=True
+            )
             self.load_state_dict(chkpt["model"])
             print("DistillMOS variant 7 weights loaded from:", DEFAULT_WEIGHTS_CHKPT)
 
@@ -124,13 +130,13 @@ class ConvTransformerSQAModel(nn.Module):
         """
         # segmenting / padding
         if not self.segmenting_in_forward:
-            assert (
-                x.shape[1] == SEQ_LEN
-            ), f"input shape {x.shape} does not match SEQ_LEN={SEQ_LEN}"
+            assert x.shape[1] == SEQ_LEN, (
+                f"input shape {x.shape} does not match SEQ_LEN={SEQ_LEN}"
+            )
         else:
             wav_overlength = x.shape[1] - SEQ_LEN
             if wav_overlength < 0:
-                x = F.pad(x, (0, -wav_overlength))
+                x = torch_nn_functional.pad(x, (0, -wav_overlength))
                 wav_overlength = 0
             num_hops = int(np.ceil(wav_overlength / MAX_HOP_LEN)) + 1
             rel_crop_region_start = list(np.linspace(0, 1, num_hops))
@@ -248,8 +254,8 @@ def command_line_inference():
         i = 1
         while os.path.exists(args.output):
             filename, filext = os.path.splitext(args.output)
-            if filename.endswith(f"_{i-1}"):
-                filename = filename[: -len(f"_{i-1}")]
+            if filename.endswith(f"_{i - 1}"):
+                filename = filename[: -len(f"_{i - 1}")]
 
             args.output = os.path.join(filename + f"_{i}" + filext)
             i += 1
@@ -273,13 +279,13 @@ def command_line_inference():
                 files = [line.strip() for line in f]
     elif input_type == "file":
         files = [args.input]
-    
+
     results_strings = []
     for line, y in _infer_file_list(files):
         truncated_line = f"[...]{line[-50:]}" if len(line) > 50 else line
         print(f"{truncated_line} DistillMOS: {y}")
         results_strings.append(f"{line}, {y}\n")
-    
+
     if output_provided or input_type != "file":
         with open(args.output, "w") as f:
             f.write("filename, DistillMOS\n")

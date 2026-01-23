@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2014 João Felipe Santos, jfsantos@emt.inrs.ca
 #
 # This file is part of the SRMRpy library, and is licensed under the
@@ -12,7 +11,8 @@ from numpy.fft import fft, ifft
 # license, you can install the package mklfft, which will plug the faster MKL FFT functions
 # into numpy.
 
-def hilbert(x, N=None, axis=-1):
+
+def hilbert(x, n=None, axis=-1):
     """
     Compute the analytic signal, using the Hilbert transform.
     The transformation is done along the last axis by default.
@@ -20,7 +20,7 @@ def hilbert(x, N=None, axis=-1):
     ----------
     x : array_like
         Signal data.  Must be real.
-    N : int, optional
+    n : int, optional
         Number of Fourier components.  Default: ``x.shape[axis]``
     axis : int, optional
         Axis along which to do the transformation.  Default: -1.
@@ -46,26 +46,26 @@ def hilbert(x, N=None, axis=-1):
     x = np.asarray(x)
     if np.iscomplexobj(x):
         raise ValueError("x must be real.")
-    if N is None:
-        N = x.shape[axis]
-        # Make N multiple of 16 to make sure the transform will be fast
-        if N % 16:
-            N = int(np.ceil(N/16)*16)
-    if N <= 0:
-        raise ValueError("N must be positive.")
+    if n is None:
+        n = x.shape[axis]
+        # Make n multiple of 16 to make sure the transform will be fast
+        if n % 16:
+            n = int(np.ceil(n / 16) * 16)
+    if n <= 0:
+        raise ValueError("n must be positive.")
 
-    Xf = fft(x, N, axis=axis)
-    h = np.zeros(N)
-    if N % 2 == 0:
-        h[0] = h[N // 2] = 1
-        h[1:N // 2] = 2
+    xf = fft(x, n, axis=axis)
+    h = np.zeros(n)
+    if n % 2 == 0:
+        h[0] = h[n // 2] = 1
+        h[1 : n // 2] = 2
     else:
         h[0] = 1
-        h[1:(N + 1) // 2] = 2
+        h[1 : (n + 1) // 2] = 2
 
     if len(x.shape) > 1:
         ind = [np.newaxis] * x.ndim
         ind[axis] = slice(None)
         h = h[ind]
-    y = ifft(Xf * h, axis=axis)
-    return y[:x.shape[axis]]
+    y = ifft(xf * h, axis=axis)
+    return y[: x.shape[axis]]
