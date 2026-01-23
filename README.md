@@ -32,9 +32,7 @@ results = audiobox_aesthetics_predict(
 ```python
 from vyvodata.pipelines.speechscore_pipeline import SpeechScorePredictor
 
-predictor = SpeechScorePredictor(
-    metrics=["DNSMOS"]  # STOI, PESQ, NISQA
-)
+predictor = SpeechScorePredictor(metrics=["DNSMOS"])  # STOI, PESQ, NISQA
 
 scores = predictor(
     test_path="test.wav",

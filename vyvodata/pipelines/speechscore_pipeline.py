@@ -1,7 +1,8 @@
-from vyvodata.tools.speechscore import SpeechScore
-from typing import Optional, Union, List, Dict, Any
-import os
 import json
+import os
+from typing import Any, Dict, List, Optional, Union
+
+from vyvodata.tools.speechscore.speechscore import speech_score
 
 
 class SpeechScorePredictor:
@@ -36,13 +37,27 @@ class SpeechScorePredictor:
         if metrics is None:
             # Use all available metrics by default
             metrics = [
-                'SRMR', 'PESQ', 'NB_PESQ', 'STOI', 'SISDR',
-                'FWSEGSNR', 'LSD', 'BSSEval', 'DNSMOS',
-                'SNR', 'SSNR', 'LLR', 'CSIG', 'CBAK',
-                'COVL', 'MCD', 'NISQA', 'DISTILL_MOS'
+                "SRMR",
+                "PESQ",
+                "NB_PESQ",
+                "STOI",
+                "SISDR",
+                "FWSEGSNR",
+                "LSD",
+                "BSSEval",
+                "DNSMOS",
+                "SNR",
+                "SSNR",
+                "LLR",
+                "CSIG",
+                "CBAK",
+                "COVL",
+                "MCD",
+                "NISQA",
+                "DISTILL_MOS",
             ]
 
-        self.model = SpeechScore(metrics)
+        self.model = speech_score(metrics)
 
     def process_audio(
         self,
@@ -50,7 +65,7 @@ class SpeechScorePredictor:
         reference_path: Optional[str] = None,
         window: Optional[float] = None,
         score_rate: int = 16000,
-        return_mean: bool = False
+        return_mean: bool = False,
     ):
         """
         Process audio files using the initialized SpeechScore model.
@@ -70,7 +85,7 @@ class SpeechScorePredictor:
             reference_path=reference_path,
             window=window,
             score_rate=score_rate,
-            return_mean=return_mean
+            return_mean=return_mean,
         )
         return scores
 
@@ -83,7 +98,7 @@ class SpeechScorePredictor:
         return_mean: bool = False,
         output_dir: Optional[str] = None,
         save_json: bool = False,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """
         Make the class callable to directly process audio files.
@@ -120,11 +135,15 @@ class SpeechScorePredictor:
         # Handle single file or directory
         if isinstance(test_path, str):
             if not os.path.exists(test_path):
-                raise FileNotFoundError(f"Test audio file/directory not found: {test_path}")
+                raise FileNotFoundError(
+                    f"Test audio file/directory not found: {test_path}"
+                )
 
             # Check reference path if provided
             if reference_path is not None and not os.path.exists(reference_path):
-                raise FileNotFoundError(f"Reference audio file/directory not found: {reference_path}")
+                raise FileNotFoundError(
+                    f"Reference audio file/directory not found: {reference_path}"
+                )
 
             # Process the audio
             result = self.process_audio(
@@ -132,12 +151,14 @@ class SpeechScorePredictor:
                 reference_path=reference_path,
                 window=window,
                 score_rate=score_rate,
-                return_mean=return_mean
+                return_mean=return_mean,
             )
 
         else:
             # Handle list of paths (future extension)
-            raise NotImplementedError("List of audio paths not yet supported. Use directory path instead.")
+            raise NotImplementedError(
+                "List of audio paths not yet supported. Use directory path instead."
+            )
 
         # Clean result values for JSON compatibility
         result = self._clean_result(result)

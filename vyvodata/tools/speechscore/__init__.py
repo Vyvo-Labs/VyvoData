@@ -1,4 +1,5 @@
-from vyvodata.tools.speechscore.speechscore import SpeechScore
+from vyvodata.tools.speechscore.speechscore import speech_score as speech_score
+
 
 class Metric:
     def __init__(self, name, window, hop=None, verbose=False):
@@ -27,10 +28,10 @@ class Metric:
         depending on the metric."""
 
         # imports
-        import soundfile as sf
-        import resampy
-        from museval.metrics import Framing
         import numpy as np
+        import resampy
+        import soundfile as sf
+        from museval.metrics import Framing
 
         audios = []
         maxlen = 0
@@ -38,9 +39,10 @@ class Metric:
             test_files = [test_files]
         if self.absolute and len(test_files) > 1:
             if self.verbose:
-                print('  [%s] is absolute. Processing first file only'
-                      % self.name)
-            test_files = [test_files[0],]
+                print("  [%s] is absolute. Processing first file only" % self.name)
+            test_files = [
+                test_files[0],
+            ]
 
         for file in test_files:
             # Loading sound file
@@ -49,26 +51,33 @@ class Metric:
             else:
                 rate = array_rate
                 if rate is None:
-                    raise ValueError('Sampling rate needs to be specified '
-                                     'when feeding numpy arrays.')
+                    raise ValueError(
+                        "Sampling rate needs to be specified when feeding numpy arrays."
+                    )
                 audio = file
                 # Standardize shapes
                 if len(audio.shape) == 1:
                     audio = audio[:, None]
                 if len(audio.shape) != 2:
-                    raise ValueError('Please provide 1D or 2D array, received '
-                                     '{}D array'.format(len(audio.shape)))
+                    raise ValueError(
+                        "Please provide 1D or 2D array, received {}D array".format(
+                            len(audio.shape)
+                        )
+                    )
 
             if self.fixed_rate is not None and rate != self.fixed_rate:
                 if self.verbose:
-                    print('  [%s] preferred is %dkHz rate. resampling'
-                          % (self.name, self.fixed_rate))
+                    print(
+                        "  [%s] preferred is %dkHz rate. resampling"
+                        % (self.name, self.fixed_rate)
+                    )
                 audio = resampy.resample(audio, rate, self.fixed_rate, axis=0)
                 rate = self.fixed_rate
             if self.mono and audio.shape[1] > 1:
                 if self.verbose:
-                    print('  [%s] only supports mono. Will use first channel'
-                          % self.name)
+                    print(
+                        "  [%s] only supports mono. Will use first channel" % self.name
+                    )
                 audio = audio[..., 0, None]
             if self.mono:
                 audio = audio[..., 0]
@@ -78,17 +87,15 @@ class Metric:
         for index, audio in enumerate(audios):
             if audio.shape[0] != maxlen:
                 new = np.zeros((maxlen,) + audio.shape[1:])
-                new[:audio.shape[0]] = audio
+                new[: audio.shape[0]] = audio
                 audios[index] = new
 
         if self.window is not None:
-            framer = Framing(self.window * rate,
-                             self.hop * rate, maxlen)
+            framer = Framing(self.window * rate, self.hop * rate, maxlen)
             nwin = framer.nwin
             result = {}
-            for (t, win) in enumerate(framer):
-                result_t = self.test_window([audio[win] for audio in audios],
-                                            rate)
+            for t, win in enumerate(framer):
+                result_t = self.test_window([audio[win] for audio in audios], rate)
                 for metric in result_t.keys():
                     if metric not in result.keys():
                         result[metric] = np.empty(nwin)
@@ -107,7 +114,7 @@ class MetricsList:
         return self
 
     def __str__(self):
-        return 'Metrics: ' + ' '.join([x.name for x in self.metrics])
+        return "Metrics: " + " ".join([x.name for x in self.metrics])
 
     def __call__(self, *files, rate=None):
         result = {}
@@ -118,8 +125,8 @@ class MetricsList:
         return result
 
 
-def load(metrics='', window=2, verbose=False):
-    """ Load the desired metrics inside a Metrics object that can then
+def load(metrics="", window=2, verbose=False):
+    """Load the desired metrics inside a Metrics object that can then
     be called to compute all the desired metrics.
 
     Parameters:
@@ -143,13 +150,13 @@ def load(metrics='', window=2, verbose=False):
 
     A MetricsList object, that can be run to get the desired metrics
     """
-    import pkgutil
     import importlib
+    import pkgutil
 
     result = MetricsList()
 
     found_modules = []
-    iterator = pkgutil.walk_packages(__path__, __name__ + '.')
+    iterator = pkgutil.walk_packages(__path__, __name__ + ".")
 
     if isinstance(metrics, str):
         metrics = [metrics]
@@ -157,11 +164,11 @@ def load(metrics='', window=2, verbose=False):
         if any([metric in module_info.name for metric in metrics]):
             module = importlib.import_module(module_info.name)
             if module not in found_modules:
-                found_modules += [module],
-                if hasattr(module, 'load'):
-                    load_function = getattr(module, 'load')
+                found_modules += ([module],)
+                if hasattr(module, "load"):
+                    load_function = getattr(module, "load")
                     new_metric = load_function(window)
                     new_metric.verbose = verbose
                     result += new_metric
-                    print('Loaded ', module_info.name)
+                    print("Loaded ", module_info.name)
     return result

@@ -1,7 +1,8 @@
-from vyvodata.tools.audiobox_aesthetics.infer import initialize_predictor
-from typing import Optional, Union, List, Dict, Any
-import os
 import json
+import os
+from typing import Any, Dict, List, Optional, Union
+
+from vyvodata.tools.audiobox_aesthetics.infer import initialize_predictor
 
 # Import huggingface utils
 from vyvodata.utils.huggingface import download_audio_files

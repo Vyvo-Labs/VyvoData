@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-from vyvodata.pipelines.aes_pipeline import AudioAestheticsPredictor
 import os
+
+from vyvodata.pipelines.aes_pipeline import AudioAestheticsPredictor
 
 # Initialize once
 predictor = AudioAestheticsPredictor(checkpoint_pth="facebook/audiobox-aesthetics")

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-import sys
 from pathlib import Path
 
 import pandas as pd
 import torch
 
-#sys.path.append(str(Path(__file__).parent.parent / "lib/NISQA"))
+# sys.path.append(str(Path(__file__).parent.parent / "lib/NISQA"))
 import vyvodata.tools.speechscore.scores.nisqa.NISQA_lib as NL
 
 
@@ -80,9 +79,9 @@ def load_nisqa_model(model_path, device="cpu"):
     if args["model"] == "NISQA":
         model = NL.NISQA(**model_args)
     elif args["model"] == "NISQA_DIM":
-        model = NL.NISQA_DIM(**model_args)
+        model = NL.NisqaDim(**model_args)
     elif args["model"] == "NISQA_DE":
-        model = NL.NISQA_DE(**model_args)
+        model = NL.NisqaDe(**model_args)
     else:
         raise NotImplementedError("Model not available")
 
@@ -101,16 +100,16 @@ def load_nisqa_model(model_path, device="cpu"):
     return model
 
 
-def cal_NISQA(model, audio, audio_path=None):
+def cal_nisqa(model, audio, audio_path=None):
     # ported from https://github.com/gabrielmittag/NISQA/blob/master/nisqa/NISQA_model.py
     if audio_path is not None:
         data_dir = Path(audio_path).parent
         file_name = Path(audio_path).name
         df_val = pd.DataFrame([file_name], columns=["deg"])
     else:
-        data_dir = './'
+        data_dir = "./"
         # The audio will be resampled to 48 kHz
-        df_val = pd.DataFrame(['dumy_file'], columns=["deg"])
+        df_val = pd.DataFrame(["dumy_file"], columns=["deg"])
     dataset = NL.SpeechQualityDataset(
         df_val,
         audio,
@@ -128,7 +127,7 @@ def cal_NISQA(model, audio, audio_path=None):
         ms_hop_length=model.args["ms_hop_length"],
         ms_win_length=model.args["ms_win_length"],
         ms_n_mels=model.args["ms_n_mels"],
-        #ms_sr=model.args["ms_sr"],
+        # ms_sr=model.args["ms_sr"],
         ms_fmax=model.args["ms_fmax"],
         ms_channel=None,
         double_ended=model.args["double_ended"],
@@ -136,7 +135,7 @@ def cal_NISQA(model, audio, audio_path=None):
         filename_column_ref=None,
     )
 
-    if model.args["dim"] == True:
+    if model.args["dim"]:
         y_val_hat, y_val = NL.predict_dim(
             model,
             dataset,
